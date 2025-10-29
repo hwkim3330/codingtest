@@ -393,3 +393,43 @@ export function createPostRequest(path, cborPayload) {
         .setPayload(cborPayload)
         .build();
 }
+
+/**
+ * Create a PUT request
+ * @param {string} path - URI path
+ * @param {Uint8Array} cborPayload - CBOR-encoded data
+ * @returns {Uint8Array} CoAP message
+ */
+export function createPutRequest(path, cborPayload) {
+    return new CoapMessageBuilder()
+        .setType(COAP_TYPE_CON)
+        .setCode(COAP_CODE_PUT)
+        .setMessageId(CoapMessageBuilder.generateMessageId())
+        .setToken(CoapMessageBuilder.generateToken())
+        .addUriPath(path)
+        .addContentFormat(CONTENT_FORMAT_YANG_CBOR_ID)
+        .addAccept(CONTENT_FORMAT_YANG_CBOR_ID)
+        .setPayload(cborPayload)
+        .build();
+}
+
+/**
+ * Create a DELETE request
+ * @param {string} path - URI path
+ * @param {string} query - Query parameters (optional)
+ * @returns {Uint8Array} CoAP message
+ */
+export function createDeleteRequest(path, query = null) {
+    const builder = new CoapMessageBuilder()
+        .setType(COAP_TYPE_CON)
+        .setCode(COAP_CODE_DELETE)
+        .setMessageId(CoapMessageBuilder.generateMessageId())
+        .setToken(CoapMessageBuilder.generateToken())
+        .addUriPath(path);
+
+    if (query) {
+        builder.addUriQuery(query);
+    }
+
+    return builder.build();
+}

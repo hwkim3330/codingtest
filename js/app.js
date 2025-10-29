@@ -3,13 +3,15 @@
  */
 
 import { WebSerialConnection, bytesToHex } from './webserial-core.js';
-import { MUP1Protocol } from './mup1-protocol.js';
+import { MUP1Protocol, frameToHex, frameToString } from './mup1-protocol.js';
 import {
     CoapMessageBuilder,
     createGetRequest,
     createFetchRequest,
     createIPatchRequest,
     createPostRequest,
+    createPutRequest,
+    createDeleteRequest,
     COAP_CODE_GET,
     COAP_CODE_FETCH,
     COAP_CODE_iPATCH,
@@ -17,6 +19,8 @@ import {
     COAP_CODE_PUT,
     COAP_CODE_DELETE
 } from './coap-builder.js';
+import { CoapParser, prettyPrintCoap } from './coap-parser.js';
+import { CborHelper, EXAMPLE_REQUESTS } from './cbor-helper.js';
 
 class VelocityDriveClient {
     constructor() {
@@ -160,149 +164,131 @@ class VelocityDriveClient {
             return;
         }
 
-        const method = this.methodSelect.value;
+        const method = this.methodSelect.value.toUpperCase();
         const requestText = this.requestInput.value.trim();
 
-        this.log(`Sending ${method.toUpperCase()} request...`, 'info');
+        this.log(`▶ Preparing ${method} request`, 'info');
 
         try {
             let coapMessage;
+            let cborPayload = null;
 
-            if (method === 'get') {
-                // Parse query parameter if provided
+            // Prepare request using CborHelper
+            if (method === 'GET' || method === 'DELETE') {
+                // GET and DELETE don't need body, use query parameter
                 let query = 'c=c'; // default
                 if (requestText) {
-                    const parsed = this.parseYAML(requestText);
-                    if (parsed && typeof parsed === 'string') {
-                        query = parsed;
+                    // Check if it's a simple query string or needs parsing
+                    if (/^[a-z]=[a-z]$/.test(requestText.replace(/\s+#.*/, '').trim())) {
+                        query = requestText.replace(/\s+#.*/, '').trim();
                     }
                 }
-                coapMessage = createGetRequest('c', query);
-            } else if (method === 'fetch') {
-                const paths = this.parseYAML(requestText);
-                if (!Array.isArray(paths)) {
-                    throw new Error('FETCH requires an array of paths');
+                this.log(`  Query: ${query}`, 'info');
+
+                if (method === 'GET') {
+                    coapMessage = createGetRequest('c', query);
+                } else {
+                    coapMessage = createDeleteRequest('c', query);
                 }
-                const cborPayload = CBOR.encode(paths);
-                coapMessage = createFetchRequest('c', cborPayload);
-            } else if (method === 'ipatch') {
-                const patchData = this.parseYAML(requestText);
-                if (!Array.isArray(patchData)) {
-                    throw new Error('iPATCH requires an array of operations');
-                }
-                const cborPayload = CBOR.encode(patchData);
-                coapMessage = createIPatchRequest('c', cborPayload);
-            } else if (method === 'post') {
-                const postData = this.parseYAML(requestText);
-                const cborPayload = CBOR.encode(postData);
-                coapMessage = createPostRequest('c', cborPayload);
             } else {
-                this.log(`Method ${method} not yet implemented`, 'warning');
-                return;
+                // FETCH, iPATCH, POST, PUT - use CBOR helper
+                const prepared = CborHelper.prepareRequest(method, requestText);
+
+                if (!prepared.valid) {
+                    throw new Error(prepared.error);
+                }
+
+                cborPayload = prepared.data;
+
+                if (cborPayload) {
+                    this.log(`  CBOR payload: ${cborPayload.length} bytes`, 'info');
+                    this.log(`  CBOR hex: ${CborHelper.toHexString(cborPayload).slice(0, 50)}...`, 'info');
+                }
+
+                // Create CoAP message based on method
+                if (method === 'FETCH') {
+                    coapMessage = createFetchRequest('c', cborPayload);
+                } else if (method === 'IPATCH') {
+                    coapMessage = createIPatchRequest('c', cborPayload);
+                } else if (method === 'POST') {
+                    coapMessage = createPostRequest('c', cborPayload);
+                } else if (method === 'PUT') {
+                    coapMessage = createPutRequest('c', cborPayload);
+                } else {
+                    throw new Error(`Unknown method: ${method}`);
+                }
             }
+
+            this.log(`  CoAP message: ${coapMessage.length} bytes`, 'info');
+            this.log(`  CoAP hex: ${bytesToHex(coapMessage.slice(0, Math.min(20, coapMessage.length)))}...`, 'info');
 
             // Encode in MUP1
             const mup1Frame = MUP1Protocol.encodeCoapFrame(coapMessage);
 
-            this.log(`Sending MUP1 frame (${mup1Frame.length} bytes)`, 'info');
-            this.log(`Frame: ${bytesToHex(mup1Frame.slice(0, Math.min(mup1Frame.length, 50)))}...`, 'info');
+            this.log(`  MUP1 frame: ${mup1Frame.length} bytes`, 'info');
+            this.log(`  Frame (ASCII): ${frameToString(mup1Frame.slice(0, Math.min(60, mup1Frame.length)))}...`, 'info');
+            this.log(`  Frame (hex): ${frameToHex(mup1Frame.slice(0, Math.min(30, mup1Frame.length)))}...`, 'info');
 
             // Send frame
             await this.serial.write(mup1Frame);
 
-            this.log('Request sent successfully', 'success');
+            this.log(`✓ ${method} request sent successfully`, 'success');
         } catch (error) {
-            this.log(`Send error: ${error.message}`, 'error');
+            this.log(`✗ Send error: ${error.message}`, 'error');
+            console.error('Send error details:', error);
         }
     }
 
     handleCoapResponse(payload) {
         try {
-            this.log('Parsing CoAP response...', 'info');
+            this.log('◀ Parsing CoAP response...', 'info');
 
-            // Parse CoAP header
-            const version = (payload[0] >> 6) & 0x03;
-            const type = (payload[0] >> 4) & 0x03;
-            const tokenLength = payload[0] & 0x0F;
-            const code = payload[1];
-            const messageId = (payload[2] << 8) | payload[3];
+            // Parse CoAP message using CoapParser
+            const parsed = CoapParser.parse(payload);
 
-            const codeClass = (code >> 5) & 0x07;
-            const codeDetail = code & 0x1F;
-
-            this.log(`CoAP: Ver=${version} Type=${type} Code=${codeClass}.${codeDetail.toString().padStart(2, '0')} MID=${messageId}`, 'info');
-
-            // Extract payload
-            let payloadStart = 4 + tokenLength;
-
-            // Skip options to find payload marker (0xFF)
-            while (payloadStart < payload.length && payload[payloadStart] !== 0xFF) {
-                const optDelta = (payload[payloadStart] >> 4) & 0x0F;
-                const optLength = payload[payloadStart] & 0x0F;
-                payloadStart++;
-
-                // Handle extended delta
-                if (optDelta === 13) payloadStart++;
-                else if (optDelta === 14) payloadStart += 2;
-
-                // Handle extended length
-                if (optLength === 13) payloadStart++;
-                else if (optLength === 14) payloadStart += 2;
-
-                // Skip option value
-                let length = optLength;
-                if (optLength === 13) length = payload[payloadStart - 1] + 13;
-                else if (optLength === 14) length = ((payload[payloadStart - 2] << 8) | payload[payloadStart - 1]) + 269;
-
-                payloadStart += length;
+            if (parsed.error) {
+                this.log(`✗ CoAP parse error: ${parsed.error}`, 'error');
+                this.responseOutput.textContent = `Parse Error: ${parsed.error}`;
+                return;
             }
 
-            // Extract CBOR payload
-            if (payloadStart < payload.length && payload[payloadStart] === 0xFF) {
-                payloadStart++; // Skip payload marker
-                const cborPayload = payload.slice(payloadStart);
+            // Log parsed header info
+            const codeStr = CoapParser.codeToString(parsed.codeClass, parsed.codeDetail);
+            const isSuccess = CoapParser.isSuccess(parsed.codeClass);
 
-                this.log(`CBOR payload (${cborPayload.length} bytes)`, 'info');
+            this.log(`  ${prettyPrintCoap(parsed)}`, 'info');
+            this.log(`  Code: ${codeStr} (${isSuccess ? 'Success' : 'Error'})`, isSuccess ? 'success' : 'error');
 
-                // Decode CBOR
-                const decoded = CBOR.decode(cborPayload.buffer);
+            if (parsed.contentFormat !== null) {
+                const formatName = CoapParser.getContentFormatName(parsed.contentFormat);
+                this.log(`  Content-Format: ${parsed.contentFormat} (${formatName})`, 'info');
+            }
 
-                // Display response
-                this.displayResponse(decoded);
+            // Handle payload
+            if (parsed.payload && parsed.payload.length > 0) {
+                this.log(`  Payload: ${parsed.payload.length} bytes`, 'info');
+                this.log(`  Payload hex: ${bytesToHex(parsed.payload.slice(0, Math.min(20, parsed.payload.length)))}...`, 'info');
+
+                // Format and display response
+                const formatted = CborHelper.formatResponse(
+                    parsed.payload,
+                    parsed.contentFormat,
+                    this.responseFormat.value
+                );
+
+                this.responseOutput.textContent = formatted;
+                this.log(`✓ Response displayed successfully`, 'success');
             } else {
-                this.log('No payload in response', 'warning');
-                this.responseOutput.textContent = 'No payload';
+                this.log('  No payload in response', 'warning');
+                this.responseOutput.textContent = `# No payload\n\nCode: ${codeStr}`;
             }
         } catch (error) {
-            this.log(`Response parse error: ${error.message}`, 'error');
-            this.responseOutput.textContent = `Parse Error: ${error.message}`;
+            this.log(`✗ Response parse error: ${error.message}`, 'error');
+            this.responseOutput.textContent = `Parse Error: ${error.message}\n\nRaw hex:\n${bytesToHex(payload)}`;
+            console.error('Response parse error details:', error);
         }
     }
 
-    displayResponse(data) {
-        const format = this.responseFormat.value;
-
-        try {
-            if (format === 'yaml') {
-                this.responseOutput.textContent = jsyaml.dump(data, { indent: 2 });
-            } else if (format === 'json') {
-                this.responseOutput.textContent = JSON.stringify(data, null, 2);
-            } else if (format === 'cbor-hex') {
-                const encoded = CBOR.encode(data);
-                this.responseOutput.textContent = bytesToHex(new Uint8Array(encoded));
-            }
-        } catch (error) {
-            this.responseOutput.textContent = `Display error: ${error.message}`;
-        }
-    }
-
-    parseYAML(text) {
-        try {
-            return jsyaml.load(text);
-        } catch (error) {
-            throw new Error(`YAML parse error: ${error.message}`);
-        }
-    }
 
     updateConnectionStatus(state, text) {
         const indicator = this.connectionStatus.querySelector('.status-indicator');
@@ -349,46 +335,16 @@ class VelocityDriveClient {
     }
 
     loadExamples() {
-        this.examples = {
-            'get-all': {
-                method: 'get',
-                request: 'c=c  # Get all config data'
-            },
-            'get-status': {
-                method: 'get',
-                request: 'd=t  # Get system state'
-            },
-            'fetch-ports': {
-                method: 'fetch',
-                request: `- "/ietf-interfaces:interfaces/interface[name='1']"
-- "/ietf-interfaces:interfaces/interface[name='2']"`
-            },
-            'set-ip': {
-                method: 'ipatch',
-                request: `- ? "/ietf-interfaces:interfaces/interface[name='L3V1']"
-  : name: "L3V1"
-    ietf-ip:ipv4:
-      address:
-      - ip: "10.0.0.1"
-        prefix-length: 24`
-            },
-            'save-config': {
-                method: 'post',
-                request: `- "/mchp-velocitysp-system:save-config":`
-            },
-            'no-sec': {
-                method: 'ipatch',
-                request: `- "/mchp-velocitysp-system:coap-server/config/security-mode": "no-sec"`
-            }
-        };
+        // Use examples from cbor-helper.js
+        this.examples = EXAMPLE_REQUESTS;
     }
 
     loadExample(name) {
         const example = this.examples[name];
         if (example) {
-            this.methodSelect.value = example.method;
-            this.requestInput.value = example.request;
-            this.log(`Loaded example: ${name}`, 'info');
+            this.methodSelect.value = example.method.toLowerCase();
+            this.requestInput.value = example.body;
+            this.log(`📋 Loaded example: ${name}`, 'info');
         }
     }
 }
