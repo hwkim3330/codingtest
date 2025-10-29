@@ -33,13 +33,13 @@ export const OPT_ACCEPT = 17;
 export const OPT_BLOCK2 = 23;
 export const OPT_BLOCK1 = 27;
 
-// Content Formats
+// Content Formats (RFC9254)
 export const CT_TEXT_PLAIN = 0;
 export const CT_APPL_JSON = 50;
 export const CT_APPL_CBOR = 60;
-export const CT_APPL_YANG_DATA_CBOR = 140;
-export const CT_APPL_YANG_IDENTIFIERS_CBOR = 141;
-export const CT_APPL_YANG_INSTANCES_CBOR = 142;
+export const CT_APPL_YANG_DATA_CBOR = 140;              // application/yang-data+cbor (data)
+export const CT_APPL_YANG_IDENTIFIERS_CBOR = 141;       // application/yang-data+cbor (SID/identifiers)
+export const CT_APPL_YANG_INSTANCES_CBOR = 142;          // application/yang-data+cbor (instances)
 
 export class CoapParser {
     /**
@@ -230,8 +230,8 @@ export class CoapParser {
             [CT_TEXT_PLAIN]: 'text/plain',
             [CT_APPL_JSON]: 'application/json',
             [CT_APPL_CBOR]: 'application/cbor',
-            [CT_APPL_YANG_DATA_CBOR]: 'application/yang-data+cbor',
-            [CT_APPL_YANG_IDENTIFIERS_CBOR]: 'application/yang-data+cbor (SID)',
+            [CT_APPL_YANG_DATA_CBOR]: 'application/yang-data+cbor (data)',
+            [CT_APPL_YANG_IDENTIFIERS_CBOR]: 'application/yang-data+cbor (identifiers)',
             [CT_APPL_YANG_INSTANCES_CBOR]: 'application/yang-data+cbor (instances)'
         };
         return formats[format] || `Unknown (${format})`;

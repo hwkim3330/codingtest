@@ -45,9 +45,10 @@ export const COAP_OPTION_CONTENT_FORMAT = 12;
 export const COAP_OPTION_ACCEPT = 17;
 
 // CORECONF Content Formats (RFC9254)
-export const CONTENT_FORMAT_CBOR = 60;              // application/cbor
-export const CONTENT_FORMAT_YANG_CBOR = 141;        // application/yang-data+cbor
-export const CONTENT_FORMAT_YANG_CBOR_ID = 142;     // application/yang-data+cbor (SID)
+export const CONTENT_FORMAT_CBOR = 60;                          // application/cbor
+export const CONTENT_FORMAT_YANG_DATA_CBOR = 140;               // application/yang-data+cbor (data)
+export const CONTENT_FORMAT_YANG_IDENTIFIERS_CBOR = 141;        // application/yang-data+cbor (SID/identifiers)
+export const CONTENT_FORMAT_YANG_INSTANCES_CBOR = 142;          // application/yang-data+cbor (instances)
 
 // Payload Marker
 const PAYLOAD_MARKER = 0xFF;
@@ -328,10 +329,10 @@ export function createGetRequest(path = "c", query = null) {
         .setMessageId(CoapMessageBuilder.generateMessageId())
         .setToken(CoapMessageBuilder.generateToken())
         .addUriPath(path)
-        .addAccept(CONTENT_FORMAT_YANG_CBOR_ID);
+        .addAccept(CONTENT_FORMAT_YANG_INSTANCES_CBOR);  // Accept instances (142)
 
     if (query) {
-        builder.addUriPath(query);
+        builder.addUriQuery(query);  // FIX: Use addUriQuery, not addUriPath
     }
 
     return builder.build();
@@ -350,8 +351,8 @@ export function createFetchRequest(path, cborPayload) {
         .setMessageId(CoapMessageBuilder.generateMessageId())
         .setToken(CoapMessageBuilder.generateToken())
         .addUriPath(path)
-        .addContentFormat(CONTENT_FORMAT_YANG_CBOR_ID)
-        .addAccept(CONTENT_FORMAT_YANG_CBOR_ID)
+        .addContentFormat(CONTENT_FORMAT_YANG_IDENTIFIERS_CBOR)   // Request: identifiers (141)
+        .addAccept(CONTENT_FORMAT_YANG_INSTANCES_CBOR)             // Response: instances (142)
         .setPayload(cborPayload)
         .build();
 }
@@ -369,8 +370,8 @@ export function createIPatchRequest(path, cborPayload) {
         .setMessageId(CoapMessageBuilder.generateMessageId())
         .setToken(CoapMessageBuilder.generateToken())
         .addUriPath(path)
-        .addContentFormat(CONTENT_FORMAT_YANG_CBOR_ID)
-        .addAccept(CONTENT_FORMAT_YANG_CBOR_ID)
+        .addContentFormat(CONTENT_FORMAT_YANG_INSTANCES_CBOR)    // Request: instances (142)
+        .addAccept(CONTENT_FORMAT_YANG_INSTANCES_CBOR)            // Response: instances (142)
         .setPayload(cborPayload)
         .build();
 }
@@ -388,8 +389,8 @@ export function createPostRequest(path, cborPayload) {
         .setMessageId(CoapMessageBuilder.generateMessageId())
         .setToken(CoapMessageBuilder.generateToken())
         .addUriPath(path)
-        .addContentFormat(CONTENT_FORMAT_YANG_CBOR_ID)
-        .addAccept(CONTENT_FORMAT_YANG_CBOR_ID)
+        .addContentFormat(CONTENT_FORMAT_YANG_INSTANCES_CBOR)    // Request: instances (142)
+        .addAccept(CONTENT_FORMAT_YANG_INSTANCES_CBOR)            // Response: instances (142)
         .setPayload(cborPayload)
         .build();
 }
@@ -407,8 +408,8 @@ export function createPutRequest(path, cborPayload) {
         .setMessageId(CoapMessageBuilder.generateMessageId())
         .setToken(CoapMessageBuilder.generateToken())
         .addUriPath(path)
-        .addContentFormat(CONTENT_FORMAT_YANG_CBOR_ID)
-        .addAccept(CONTENT_FORMAT_YANG_CBOR_ID)
+        .addContentFormat(CONTENT_FORMAT_YANG_DATA_CBOR)      // Request: data (140)
+        .addAccept(CONTENT_FORMAT_YANG_DATA_CBOR)              // Response: data (140)
         .setPayload(cborPayload)
         .build();
 }

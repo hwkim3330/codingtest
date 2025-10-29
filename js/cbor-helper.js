@@ -223,9 +223,8 @@ export class CborHelper {
             return '# Empty response';
         }
 
-        // Check if it's CBOR content
-        const isCbor = contentFormat === 60 || contentFormat === 140 ||
-                       contentFormat === 141 || contentFormat === 142;
+        // Check if it's CBOR content (60, 140, 141, 142)
+        const isCbor = [60, 140, 141, 142].includes(contentFormat);
 
         if (!isCbor) {
             // Plain text or other format
