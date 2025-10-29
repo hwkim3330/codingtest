@@ -1,0 +1,29 @@
+# Example: TSN Time-Aware Shaper (TAS) Configuration
+# Configure 8-queue TAS with 200μs cycle time
+
+# Enable TAS
+- ? "/mchp-velocitysp-system:tsn/tas/enabled"
+  : true
+
+# Set cycle time to 200000 nanoseconds (200 microseconds)
+- ? "/mchp-velocitysp-system:tsn/tas/cycle-time"
+  : 200000
+
+# Configure Gate Control List (8 traffic classes)
+- ? "/mchp-velocitysp-system:tsn/tas/gate-control-list"
+  : - gate-state: "10000000"  # TC7 only
+      time-interval: 50000     # 50μs
+    - gate-state: "01000000"  # TC6 only
+      time-interval: 30000     # 30μs
+    - gate-state: "00100000"  # TC5 only
+      time-interval: 20000     # 20μs
+    - gate-state: "00010000"  # TC4 only
+      time-interval: 20000     # 20μs
+    - gate-state: "00001000"  # TC3 only
+      time-interval: 20000     # 20μs
+    - gate-state: "00000100"  # TC2 only
+      time-interval: 20000     # 20μs
+    - gate-state: "00000010"  # TC1 only
+      time-interval: 20000     # 20μs
+    - gate-state: "00000001"  # TC0 only
+      time-interval: 20000     # 20μs

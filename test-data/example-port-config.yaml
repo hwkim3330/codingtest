@@ -1,0 +1,20 @@
+# Example: Port Configuration
+# Configure Port 1 with specific speed and duplex settings
+
+- ? "/ietf-interfaces:interfaces/interface[name='1']/enabled"
+  : true
+
+- ? "/ietf-interfaces:interfaces/interface[name='1']/description"
+  : "Port 1 - Configured for 1Gbps Full Duplex"
+
+- ? "/ietf-interfaces:interfaces/interface[name='1']/ieee802-ethernet-interface:ethernet/auto-negotiation/enable"
+  : false
+
+- ? "/ietf-interfaces:interfaces/interface[name='1']/mchp-velocitysp-port:eth-port/config/speed"
+  : "1000"
+
+- ? "/ietf-interfaces:interfaces/interface[name='1']/mchp-velocitysp-port:eth-port/config/duplex"
+  : "full"
+
+- ? "/ietf-interfaces:interfaces/interface[name='1']/mchp-velocitysp-port:eth-port/config/max-frame-length"
+  : 9600

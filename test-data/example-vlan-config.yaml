@@ -1,0 +1,32 @@
+# Example: VLAN Configuration
+# Create VLAN 100 with Port 1 as access port and Port 3 as trunk port
+
+# Step 1: Configure Port 1 as access port (TAG un-aware)
+- ? "/ietf-interfaces:interfaces/interface[name='1']/ieee802-dot1q-bridge:bridge-port/port-type"
+  : ieee802-dot1q-bridge:d-bridge-port
+
+- ? "/ietf-interfaces:interfaces/interface[name='1']/ieee802-dot1q-bridge:bridge-port/pvid"
+  : 100
+
+# Step 2: Configure Port 3 as trunk port (C-TAG aware)
+- ? "/ietf-interfaces:interfaces/interface[name='3']/ieee802-dot1q-bridge:bridge-port/port-type"
+  : ieee802-dot1q-bridge:c-vlan-bridge-port
+
+- ? "/ietf-interfaces:interfaces/interface[name='3']/ieee802-dot1q-bridge:bridge-port/acceptable-frame"
+  : admit-only-VLAN-tagged-frames
+
+- ? "/ietf-interfaces:interfaces/interface[name='3']/ieee802-dot1q-bridge:bridge-port/enable-ingress-filtering"
+  : true
+
+# Step 3: Create VLAN 100
+- ? "/ieee802-dot1q-bridge:bridges/bridge[name='b0']/component[name='c0']/filtering-database/vlan-registration-entry"
+  : database-id: 0
+    vids: '100'
+    entry-type: static
+    port-map:
+    - port-ref: 1
+      static-vlan-registration-entries:
+        vlan-transmitted: untagged
+    - port-ref: 3
+      static-vlan-registration-entries:
+        vlan-transmitted: tagged

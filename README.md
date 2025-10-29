@@ -55,6 +55,51 @@ Based on: https://github.com/microchip-ung/velocitydrivesp-support
 - **📤 Export**: Download configuration as YAML
 - **🖥️ Console**: Real-time protocol logging
 - **🎨 Apple Design**: Clean, modern registry-editor style UI
+- **🧪 Test Mode**: Full offline testing with realistic mock data
+
+## 📺 Interactive Demos
+
+**NEW!** Interactive configuration demonstrations with real-time code generation:
+
+🌐 **[View All Demos](https://hwkim3330.github.io/codingtest/demos/)** - Demos Index Page
+
+### Available Demos
+
+1. **🔌 [Port Configuration](https://hwkim3330.github.io/codingtest/demos/port-config-demo.html)**
+   - Configure speed, duplex, auto-negotiation
+   - Maximum frame length and flow control
+   - Real-time iPATCH code generation
+
+2. **🌐 [VLAN Configuration](https://hwkim3330.github.io/codingtest/demos/vlan-config-demo.html)**
+   - Create VLANs with access/trunk ports
+   - Visual network topology diagram
+   - Port type and ingress filtering
+
+3. **🎵 [TSN Credit-Based Shaper](https://hwkim3330.github.io/codingtest/demos/tsn-cbs-demo.html)**
+   - Reserve bandwidth for Audio/Video traffic
+   - Idle/Send slope calculator
+   - Real-time bandwidth allocation chart
+
+### Example Configuration Files
+
+Ready-to-use YAML examples in `test-data/`:
+
+```yaml
+# Port Configuration
+test-data/example-port-config.yaml
+
+# VLAN Configuration with Access and Trunk Ports
+test-data/example-vlan-config.yaml
+
+# TSN CBS - Audio/Video Bandwidth Reservation
+test-data/example-tsn-cbs.yaml
+
+# TSN TAS - Time-Slotted Gate Control
+test-data/example-tsn-tas.yaml
+
+# Complete Mock Configuration
+test-data/mock-config.yaml
+```
 
 ## 📖 Protocol Details
 

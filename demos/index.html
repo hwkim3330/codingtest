@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VelocityDRIVE-SP Configuration Demos</title>
+    <link rel="stylesheet" href="../css/config-editor.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 16px;
+        }
+        .header p {
+            font-size: 18px;
+            color: #666;
+        }
+        .demos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+        .demo-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 28px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .demo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            border-color: var(--primary);
+        }
+        .demo-card-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .demo-card h3 {
+            margin: 0 0 12px 0;
+            color: var(--primary);
+            font-size: 20px;
+        }
+        .demo-card p {
+            margin: 0;
+            color: #666;
+            line-height: 1.6;
+        }
+        .demo-card-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 12px;
+            background: #e3f2fd;
+            color: var(--primary);
+        }
+        .main-tools {
+            background: linear-gradient(135deg, var(--primary) 0%, #0051D5 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 60px;
+            text-align: center;
+        }
+        .main-tools h2 {
+            margin-top: 0;
+            font-size: 28px;
+        }
+        .main-tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .tool-link {
+            background: white;
+            color: var(--primary);
+            padding: 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: block;
+        }
+        .tool-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-color);
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ VelocityDRIVE-SP Configuration Demos</h1>
+            <p>Interactive demonstrations of VelocityDRIVE-SP configuration features</p>
+        </div>
+
+        <div class="main-tools">
+            <h2>🚀 Main Configuration Tools</h2>
+            <div class="main-tools-grid">
+                <a href="../config-editor.html" class="tool-link">
+                    📋 Full Config Editor<br>
+                    <small>Registry-style YANG browser</small>
+                </a>
+                <a href="../index.html" class="tool-link">
+                    🔧 Simple CORECONF Client<br>
+                    <small>Quick GET/FETCH/iPATCH/POST</small>
+                </a>
+                <a href="https://github.com/hwkim3330/codingtest" class="tool-link">
+                    📚 Documentation & Source<br>
+                    <small>GitHub Repository</small>
+                </a>
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 30px;">📺 Interactive Demos</h2>
+        <div class="demos-grid">
+            <a href="port-config-demo.html" class="demo-card">
+                <div class="demo-card-icon">🔌</div>
+                <h3>Port Configuration</h3>
+                <p>Configure port speed, duplex, auto-negotiation, and maximum frame length settings.</p>
+                <span class="demo-card-badge">Basic</span>
+            </a>
+
+            <a href="vlan-config-demo.html" class="demo-card">
+                <div class="demo-card-icon">🌐</div>
+                <h3>VLAN Configuration</h3>
+                <p>Create VLANs with access and trunk ports. Configure port types and ingress filtering.</p>
+                <span class="demo-card-badge">Layer 2</span>
+            </a>
+
+            <a href="tsn-cbs-demo.html" class="demo-card">
+                <div class="demo-card-icon">🎵</div>
+                <h3>TSN Credit-Based Shaper</h3>
+                <p>Reserve bandwidth for Audio/Video traffic using CBS (IEEE 802.1Qav).</p>
+                <span class="demo-card-badge">TSN</span>
+            </a>
+
+            <a href="#" class="demo-card" style="opacity: 0.6; cursor: not-allowed;">
+                <div class="demo-card-icon">⏰</div>
+                <h3>TSN Time-Aware Shaper</h3>
+                <p>Configure TAS gate control list with time-slotted traffic scheduling.</p>
+                <span class="demo-card-badge">TSN</span>
+                <span class="demo-card-badge" style="background: #ffeb3b; color: #000;">Coming Soon</span>
+            </a>
+
+            <a href="#" class="demo-card" style="opacity: 0.6; cursor: not-allowed;">
+                <div class="demo-card-icon">🎯</div>
+                <h3>QoS Configuration</h3>
+                <p>Configure PCP mapping, traffic class shapers, and WRR schedulers.</p>
+                <span class="demo-card-badge">QoS</span>
+                <span class="demo-card-badge" style="background: #ffeb3b; color: #000;">Coming Soon</span>
+            </a>
+
+            <a href="#" class="demo-card" style="opacity: 0.6; cursor: not-allowed;">
+                <div class="demo-card-icon">🕐</div>
+                <h3>PTP Configuration</h3>
+                <p>Configure IEEE 1588 PTP instances, servos, and 1PPS output.</p>
+                <span class="demo-card-badge">TSN</span>
+                <span class="demo-card-badge" style="background: #ffeb3b; color: #000;">Coming Soon</span>
+            </a>
+
+            <a href="#" class="demo-card" style="opacity: 0.6; cursor: not-allowed;">
+                <div class="demo-card-icon">🔍</div>
+                <h3>PSFP Configuration</h3>
+                <p>Configure Per-Stream Filtering and Policing with stream identification.</p>
+                <span class="demo-card-badge">TSN</span>
+                <span class="demo-card-badge" style="background: #ffeb3b; color: #000;">Coming Soon</span>
+            </a>
+
+            <a href="#" class="demo-card" style="opacity: 0.6; cursor: not-allowed;">
+                <div class="demo-card-icon">🔒</div>
+                <h3>Security Configuration</h3>
+                <p>Configure CoAP security modes, user authentication, and access control.</p>
+                <span class="demo-card-badge">Security</span>
+                <span class="demo-card-badge" style="background: #ffeb3b; color: #000;">Coming Soon</span>
+            </a>
+        </div>
+
+        <div style="background: #f5f5f7; border-radius: 12px; padding: 30px; margin-bottom: 40px;">
+            <h2 style="margin-top: 0;">📖 Example Configurations</h2>
+            <p style="color: #666; margin-bottom: 20px;">Ready-to-use YAML configuration examples:</p>
+            <ul style="color: #666; line-height: 2;">
+                <li><code>test-data/example-port-config.yaml</code> - Port speed and duplex settings</li>
+                <li><code>test-data/example-vlan-config.yaml</code> - VLAN with access/trunk ports</li>
+                <li><code>test-data/example-tsn-cbs.yaml</code> - CBS bandwidth reservation</li>
+                <li><code>test-data/example-tsn-tas.yaml</code> - TAS gate control list</li>
+                <li><code>test-data/mock-config.yaml</code> - Complete device configuration</li>
+            </ul>
+        </div>
+
+        <div style="background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; padding: 20px; margin-bottom: 40px;">
+            <h3 style="margin-top: 0;">🧪 Test Mode</h3>
+            <p style="margin: 0; color: #666;">All demos run in Test Mode with simulated device responses. Click "🧪 Test Mode" button in config-editor.html to try the full configuration tool without hardware.</p>
+        </div>
+
+        <div class="footer">
+            <p><strong>VelocityDRIVE-SP WebSerial Config Editor</strong></p>
+            <p>Based on official <a href="https://github.com/microchip-ung/velocitydrivesp-documentation" target="_blank">velocitydrivesp-documentation</a></p>
+            <p style="margin-top: 20px;">
+                🤖 Generated with <a href="https://claude.com/claude-code" target="_blank">Claude Code</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

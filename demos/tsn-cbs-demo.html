@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSN CBS Configuration Demo - VelocityDRIVE-SP</title>
+    <link rel="stylesheet" href="../css/config-editor.css">
+    <style>
+        .demo-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .demo-content {
+            display: grid;
+            grid-template-columns: 600px 1fr;
+            gap: 30px;
+        }
+        .demo-panel {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .demo-panel h3 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .code-block {
+            background: #f5f5f7;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .tc-config {
+            background: #f5f5f7;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .tc-config h4 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+        .tc-badge.audio { background: #FF9800; }
+        .tc-badge.video { background: #9C27B0; }
+        .tc-badge.control { background: #2196F3; }
+        .bandwidth-bar {
+            height: 30px;
+            background: linear-gradient(90deg, var(--success) 0%, var(--success) var(--percent), #e0e0e0 var(--percent), #e0e0e0 100%);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            margin-top: 8px;
+            font-weight: 600;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🎵 TSN Credit-Based Shaper (CBS) Demo</h1>
+            <p>Configure bandwidth reservation for Audio/Video traffic</p>
+        </div>
+
+        <div class="info-box">
+            <strong>📘 Credit-Based Shaper (CBS)</strong><br>
+            CBS guarantees bandwidth for time-sensitive traffic classes. Configure idle slope and send slope parameters to reserve bandwidth for Audio (Class A) and Video (Class B) traffic according to IEEE 802.1Qav.
+        </div>
+
+        <div class="demo-content">
+            <!-- Configuration Panel -->
+            <div class="demo-panel">
+                <h3>CBS Configuration</h3>
+
+                <div class="form-group">
+                    <label for="cbsEnabled">CBS Status</label>
+                    <select id="cbsEnabled">
+                        <option value="false">Disabled</option>
+                        <option value="true" selected>Enabled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="portId">Port Number</label>
+                    <select id="portId">
+                        <option value="1" selected>Port 1</option>
+                        <option value="2">Port 2</option>
+                        <option value="3">Port 3</option>
+                        <option value="4">Port 4</option>
+                    </select>
+                </div>
+
+                <div class="tc-config">
+                    <h4>
+                        <span class="tc-badge audio">TC 6</span>
+                        Class A - Audio Traffic
+                    </h4>
+                    <div class="form-group">
+                        <label for="tc6IdleSlope">Idle Slope (Kbps)</label>
+                        <input type="number" id="tc6IdleSlope" value="3500" min="0" max="10000" />
+                        <div class="bandwidth-bar" id="tc6Bar" style="--percent: 35%;">
+                            <span id="tc6Percent">35%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="tc6SendSlope">Send Slope (Kbps)</label>
+                        <input type="number" id="tc6SendSlope" value="-6500" max="0" />
+                    </div>
+                </div>
+
+                <div class="tc-config">
+                    <h4>
+                        <span class="tc-badge video">TC 5</span>
+                        Class B - Video Traffic
+                    </h4>
+                    <div class="form-group">
+                        <label for="tc5IdleSlope">Idle Slope (Kbps)</label>
+                        <input type="number" id="tc5IdleSlope" value="2000" min="0" max="10000" />
+                        <div class="bandwidth-bar" id="tc5Bar" style="--percent: 20%;">
+                            <span id="tc5Percent">20%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="tc5SendSlope">Send Slope (Kbps)</label>
+                        <input type="number" id="tc5SendSlope" value="-8000" max="0" />
+                    </div>
+                </div>
+
+                <div class="tc-config">
+                    <h4>
+                        <span class="tc-badge control">TC 2</span>
+                        Control Traffic
+                    </h4>
+                    <div class="form-group">
+                        <label for="tc2IdleSlope">Idle Slope (Kbps)</label>
+                        <input type="number" id="tc2IdleSlope" value="1500" min="0" max="10000" />
+                        <div class="bandwidth-bar" id="tc2Bar" style="--percent: 15%;">
+                            <span id="tc2Percent">15%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="tc2SendSlope">Send Slope (Kbps)</label>
+                        <input type="number" id="tc2SendSlope" value="-8500" max="0" />
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="applyCbsConfig()">✓ Apply CBS Config</button>
+                    <button class="btn btn-secondary" onclick="resetCbsConfig()">✗ Reset</button>
+                </div>
+            </div>
+
+            <!-- Generated Code -->
+            <div>
+                <div class="demo-panel">
+                    <h3>Bandwidth Allocation</h3>
+                    <div style="padding: 20px; background: #f5f5f7; border-radius: 8px; margin-bottom: 20px;">
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>🎵 Audio (TC6)</span>
+                                <strong id="tc6BwDisplay">3.5 Mbps (35%)</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>🎬 Video (TC5)</span>
+                                <strong id="tc5BwDisplay">2.0 Mbps (20%)</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>🎛️ Control (TC2)</span>
+                                <strong id="tc2BwDisplay">1.5 Mbps (15%)</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 2px solid #ddd;">
+                                <span><strong>Total Reserved</strong></span>
+                                <strong id="totalBwDisplay" style="color: var(--primary);">7.0 Mbps (70%)</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                                <span>Best Effort Traffic</span>
+                                <strong id="beBwDisplay">3.0 Mbps (30%)</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Formula Explanation</h3>
+                    <div class="code-block" style="background: #fff9c4;">
+IdleSlope: Bandwidth allocated when queue is active
+SendSlope: -(PortSpeed - IdleSlope)
+
+For 10 Mbps port:
+  TC6: IdleSlope = 3500 Kbps (3.5 Mbps)
+       SendSlope = -(10000 - 3500) = -6500 Kbps
+
+Bandwidth % = (IdleSlope / PortSpeed) × 100
+            = (3500 / 10000) × 100 = 35%</div>
+                </div>
+
+                <div class="demo-panel">
+                    <h3>Generated iPATCH Request</h3>
+                    <div class="code-block" id="generatedCode"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PORT_SPEED = 10000; // 10 Mbps in Kbps
+
+        function updateDisplay() {
+            const portId = document.getElementById('portId').value;
+            const cbsEnabled = document.getElementById('cbsEnabled').value;
+            const tc6Idle = parseInt(document.getElementById('tc6IdleSlope').value);
+            const tc6Send = parseInt(document.getElementById('tc6SendSlope').value);
+            const tc5Idle = parseInt(document.getElementById('tc5IdleSlope').value);
+            const tc5Send = parseInt(document.getElementById('tc5SendSlope').value);
+            const tc2Idle = parseInt(document.getElementById('tc2IdleSlope').value);
+            const tc2Send = parseInt(document.getElementById('tc2SendSlope').value);
+
+            // Calculate percentages
+            const tc6Percent = (tc6Idle / PORT_SPEED * 100).toFixed(1);
+            const tc5Percent = (tc5Idle / PORT_SPEED * 100).toFixed(1);
+            const tc2Percent = (tc2Idle / PORT_SPEED * 100).toFixed(1);
+            const totalPercent = (parseFloat(tc6Percent) + parseFloat(tc5Percent) + parseFloat(tc2Percent)).toFixed(1);
+            const bePercent = (100 - parseFloat(totalPercent)).toFixed(1);
+
+            // Update bars
+            document.getElementById('tc6Bar').style.setProperty('--percent', `${tc6Percent}%`);
+            document.getElementById('tc6Percent').textContent = `${tc6Percent}%`;
+            document.getElementById('tc5Bar').style.setProperty('--percent', `${tc5Percent}%`);
+            document.getElementById('tc5Percent').textContent = `${tc5Percent}%`;
+            document.getElementById('tc2Bar').style.setProperty('--percent', `${tc2Percent}%`);
+            document.getElementById('tc2Percent').textContent = `${tc2Percent}%`;
+
+            // Update bandwidth display
+            document.getElementById('tc6BwDisplay').textContent = `${(tc6Idle/1000).toFixed(1)} Mbps (${tc6Percent}%)`;
+            document.getElementById('tc5BwDisplay').textContent = `${(tc5Idle/1000).toFixed(1)} Mbps (${tc5Percent}%)`;
+            document.getElementById('tc2BwDisplay').textContent = `${(tc2Idle/1000).toFixed(1)} Mbps (${tc2Percent}%)`;
+            document.getElementById('totalBwDisplay').textContent = `${((tc6Idle+tc5Idle+tc2Idle)/1000).toFixed(1)} Mbps (${totalPercent}%)`;
+            document.getElementById('beBwDisplay').textContent = `${((PORT_SPEED-(tc6Idle+tc5Idle+tc2Idle))/1000).toFixed(1)} Mbps (${bePercent}%)`;
+
+            // Generate code
+            const code = `# Enable CBS
+- ? "/mchp-velocitysp-system:tsn/cbs/enabled"
+  : ${cbsEnabled}
+
+# Configure Traffic Class 6 (Audio - Class A) on Port ${portId}
+- ? "/mchp-velocitysp-system:tsn/cbs/port-config"
+  : port-id: ${portId}
+    tc: 6
+    idle-slope: ${tc6Idle}
+    send-slope: ${tc6Send}
+
+# Configure Traffic Class 5 (Video - Class B) on Port ${portId}
+- ? "/mchp-velocitysp-system:tsn/cbs/port-config"
+  : port-id: ${portId}
+    tc: 5
+    idle-slope: ${tc5Idle}
+    send-slope: ${tc5Send}
+
+# Configure Traffic Class 2 (Control) on Port ${portId}
+- ? "/mchp-velocitysp-system:tsn/cbs/port-config"
+  : port-id: ${portId}
+    tc: 2
+    idle-slope: ${tc2Idle}
+    send-slope: ${tc2Send}`;
+
+            document.getElementById('generatedCode').textContent = code;
+        }
+
+        function applyCbsConfig() {
+            updateDisplay();
+            alert('✅ CBS Configuration applied successfully!\n\nBandwidth has been reserved for Audio, Video, and Control traffic.\n\n(In Test Mode - no actual device communication)');
+        }
+
+        function resetCbsConfig() {
+            document.getElementById('cbsEnabled').value = 'true';
+            document.getElementById('portId').value = '1';
+            document.getElementById('tc6IdleSlope').value = '3500';
+            document.getElementById('tc6SendSlope').value = '-6500';
+            document.getElementById('tc5IdleSlope').value = '2000';
+            document.getElementById('tc5SendSlope').value = '-8000';
+            document.getElementById('tc2IdleSlope').value = '1500';
+            document.getElementById('tc2SendSlope').value = '-8500';
+            updateDisplay();
+        }
+
+        // Auto-calculate send slope
+        function updateSendSlope(tc) {
+            const idle = parseInt(document.getElementById(`tc${tc}IdleSlope`).value);
+            const send = -(PORT_SPEED - idle);
+            document.getElementById(`tc${tc}SendSlope`).value = send;
+            updateDisplay();
+        }
+
+        // Update on input change
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('change', updateDisplay);
+            el.addEventListener('input', updateDisplay);
+        });
+
+        document.getElementById('tc6IdleSlope').addEventListener('input', () => updateSendSlope(6));
+        document.getElementById('tc5IdleSlope').addEventListener('input', () => updateSendSlope(5));
+        document.getElementById('tc2IdleSlope').addEventListener('input', () => updateSendSlope(2));
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>

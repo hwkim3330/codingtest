@@ -500,16 +500,190 @@ export const MOCK_CONFIG_DATA = {
     },
     "ieee1588-ptp:ptp": {
         "mchp-velocitysp-ptp:ltcs": {
-            "ltc": []
+            "ltc": [
+                {
+                    "ltc-index": 1,
+                    "ptp-pins": {
+                        "ptp-pin": [
+                            {
+                                "index": 4,
+                                "function": "1pps-out"
+                            }
+                        ]
+                    }
+                }
+            ]
         },
         "instances": {
-            "instance": []
+            "instance": [
+                {
+                    "instance-index": 0,
+                    "default-ds": {
+                        "clock-identity": "00-11-22-FF-FE-33-44-00",
+                        "priority1": 246,
+                        "priority2": 248,
+                        "domain-number": 0,
+                        "instance-enable": true,
+                        "external-port-config-enable": false,
+                        "max-steps-removed": 255,
+                        "instance-type": "relay"
+                    },
+                    "parent-ds": {
+                        "parent-port-identity": {
+                            "clock-identity": "00-00-00-00-00-00-00-00",
+                            "port-number": 0
+                        },
+                        "grandmaster-identity": "00-11-22-FF-FE-33-44-00",
+                        "grandmaster-clock-quality": {
+                            "clock-class": "ieee1588-ptp:cc-default",
+                            "clock-accuracy": "mchp-velocitysp-ptp:ca-time-accurate-unknown"
+                        },
+                        "grandmaster-priority1": 246,
+                        "grandmaster-priority2": 248,
+                        "ieee802-dot1as-ptp:cumulative-rate-ratio": 0
+                    },
+                    "ports": {
+                        "port": [
+                            {
+                                "port-index": 25,
+                                "port-ds": {
+                                    "port-state": "disabled",
+                                    "mean-link-delay": "0",
+                                    "log-sync-interval": -3,
+                                    "log-min-pdelay-req-interval": 0,
+                                    "port-enable": true,
+                                    "ieee802-dot1as-ptp:as-capable": false,
+                                    "ieee802-dot1as-ptp:mean-link-delay-thresh": "52428800",
+                                    "ieee802-dot1as-ptp:neighbor-rate-ratio": 0,
+                                    "ieee802-dot1as-ptp:sync-receipt-timeout": 3,
+                                    "ieee802-dot1as-ptp:use-mgt-one-step-tx-oper": false,
+                                    "ieee802-dot1as-ptp:mgt-one-step-tx-oper": 0
+                                },
+                                "timestamp-correction-port-ds": {
+                                    "egress-latency": "0",
+                                    "ingress-latency": "0"
+                                },
+                                "external-port-config-port-ds": {
+                                    "desired-state": "disabled"
+                                }
+                            }
+                        ]
+                    },
+                    "mchp-velocitysp-ptp:servos": {
+                        "servo": [
+                            {
+                                "servo-index": 0,
+                                "servo-type": "pi",
+                                "ltc-index": 0,
+                                "offset": "0",
+                                "state": 0
+                            }
+                        ]
+                    },
+                    "mchp-velocitysp-ptp:automotive": {
+                        "profile": "none"
+                    },
+                    "mchp-velocitysp-ptp:l2": {
+                        "mac-address": "00-00-00-00-00-00",
+                        "mac-address-enable": false,
+                        "vlan": 0,
+                        "vlan-enable": false
+                    }
+                }
+            ]
         }
     },
-    "ieee802-dot1cb-stream-identification:stream-identity": [],
-    "ieee802-dot1cb-frer:stream-filters": [],
-    "ieee802-dot1cb-frer:stream-gates": [],
-    "ieee802-dot1cb-frer:flow-meters": []
+    "ieee802-dot1cb-stream-identification:stream-identity": [
+        {
+            "index": 1,
+            "handle": 2,
+            "out-facing": {
+                "input-port": ["1"]
+            },
+            "null-stream-identification": {
+                "destination-mac": "01-02-03-04-05-06",
+                "tagged": "all",
+                "vlan": 0
+            }
+        },
+        {
+            "index": 2,
+            "handle": 3,
+            "out-facing": {
+                "input-port": ["1"]
+            },
+            "smac-vlan-stream-identification": {
+                "source-mac": "00-01-02-03-04-05",
+                "tagged": "all",
+                "vlan": 0
+            }
+        },
+        {
+            "index": 3,
+            "handle": 4,
+            "out-facing": {
+                "input-port": ["2"]
+            },
+            "ip-stream-identification": {
+                "destination-mac": "01-02-03-04-05-06",
+                "vlan": 10,
+                "ipv4": {
+                    "source-address": "192.168.1.10",
+                    "destination-address": "192.168.1.20",
+                    "dscp": 46,
+                    "protocol": 17,
+                    "source-port": 5000,
+                    "destination-port": 6000
+                }
+            }
+        }
+    ],
+    "ieee802-dot1cb-frer:stream-filters": [
+        {
+            "filter-id": 1,
+            "stream-handle-spec": 2,
+            "stream-gate-instance-id": 1,
+            "flow-meter-instance-id": 0,
+            "maximum-sdu-size": 1522,
+            "filter-enable": true
+        }
+    ],
+    "ieee802-dot1cb-frer:stream-gates": [
+        {
+            "gate-id": 1,
+            "gate-enable": true,
+            "admin-control-list": {
+                "admin-cycle-time": {
+                    "numerator": 1000000,
+                    "denominator": 1
+                },
+                "admin-control-list-entry": [
+                    {
+                        "index": 0,
+                        "operation-name": "set-gate-states",
+                        "time-interval-value": 500000,
+                        "gate-states-value": 1
+                    },
+                    {
+                        "index": 1,
+                        "operation-name": "set-gate-states",
+                        "time-interval-value": 500000,
+                        "gate-states-value": 0
+                    }
+                ]
+            }
+        }
+    ],
+    "ieee802-dot1cb-frer:flow-meters": [
+        {
+            "meter-id": 1,
+            "committed-information-rate": 10000000,
+            "committed-burst-size": 12000,
+            "excess-information-rate": 0,
+            "excess-burst-size": 0,
+            "coupling-flag": false
+        }
+    ]
 };
 
 export class TestMode {

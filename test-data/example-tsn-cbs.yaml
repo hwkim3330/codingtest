@@ -1,0 +1,29 @@
+# Example: TSN Credit-Based Shaper (CBS) Configuration
+# Configure CBS for Audio/Video traffic on Port 1
+
+# Enable CBS
+- ? "/mchp-velocitysp-system:tsn/cbs/enabled"
+  : true
+
+# Configure Traffic Class 6 (Class A - Audio) on Port 1
+- ? "/mchp-velocitysp-system:tsn/cbs/port-config"
+  : port-id: 1
+    tc: 6
+    idle-slope: 3500
+    send-slope: -6500
+
+# Configure Traffic Class 5 (Class B - Video) on Port 1
+- ? "/mchp-velocitysp-system:tsn/cbs/port-config"
+  : port-id: 1
+    tc: 5
+    idle-slope: 2000
+    send-slope: -8000
+
+# Configure QoS Priority Mapping (PCP 6,7 -> Priority 6)
+- ? "/mchp-velocitysp-system:tsn/qos/priority-map"
+  : pcp: 6
+    priority: 6
+
+- ? "/mchp-velocitysp-system:tsn/qos/priority-map"
+  : pcp: 7
+    priority: 6
