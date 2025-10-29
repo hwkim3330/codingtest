@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VelocityDRIVE-SP WebSerial Client - Coding Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        .task {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .difficulty {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .easy { background: #48bb78; color: white; }
+        .medium { background: #ed8936; color: white; }
+        .hard { background: #f56565; color: white; }
+        .example {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        ul {
+            margin-left: 20px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .note {
+            background: #fef5e7;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #667eea;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 VelocityDRIVE-SP WebSerial Client</h1>
+        <h2>Coding Test & Implementation Challenge</h2>
+
+        <div class="note">
+            <strong>⚡ Project Overview:</strong><br>
+            Build a browser-based client for Microchip's VelocityDRIVE-SP platform using WebSerial API.
+            The client must implement MUP1 protocol, CoAP message construction, and CORECONF operations.
+        </div>
+
+        <h2>📋 Background</h2>
+
+        <h3>What is VelocityDRIVE-SP?</h3>
+        <p>VelocityDRIVE-SP is a software platform for Ethernet switches offering CoAP/CORECONF management over:</p>
+        <ul>
+            <li><strong>IP (standard CoAP)</strong>: Network-based management using IPv4/IPv6</li>
+            <li><strong>MUP1 (Microchip UART Protocol #1)</strong>: Serial-based management without IP configuration</li>
+        </ul>
+
+        <h3>Protocol Stack</h3>
+        <pre><code>Application Layer:  CORECONF (YANG-based configuration)
+                    ↓
+Encoding:           CBOR (RFC9254) or JSON (RFC7951)
+                    ↓
+Protocol:           CoAP (RFC7252)
+                    ↓
+Transport:          MUP1 (UART) or UDP (IP)
+                    ↓
+Physical:           Serial Port or Ethernet</code></pre>
+
+        <h2>🎯 Technical Requirements</h2>
+
+        <h3>Core Protocols to Implement</h3>
+
+        <div class="task">
+            <h4>1. MUP1 Protocol <span class="difficulty medium">Medium</span></h4>
+            <p><strong>Frame Format:</strong></p>
+            <pre><code>Structure: >TYPE[DATA]<CHECKSUM
+
+Fields:
+- START:    '>' (0x3E)
+- TYPE:     1 byte (0x43='C' for CoAP)
+- DATA:     Variable length payload
+- END:      '<' (0x3C)
+- CHECKSUM: XOR of all bytes between '>' and '<'</code></pre>
+
+            <p><strong>Your Tasks:</strong></p>
+            <ul>
+                <li>Implement frame encoder (TYPE + DATA → MUP1 frame)</li>
+                <li>Implement frame decoder (MUP1 frame → TYPE + DATA)</li>
+                <li>Handle checksum calculation and verification</li>
+                <li>Support multiple frame types (CoAP, TRACE, ANNOUNCE)</li>
+            </ul>
+
+            <div class="example">
+                <strong>Example:</strong>
+                <pre><code>// Encode CoAP frame
+const coapData = new Uint8Array([0x40, 0x01, 0x12, 0x34]);
+const mup1Frame = encodeMUP1Frame(0x43, coapData);
+// Result: >C[0x40,0x01,0x12,0x34]<CHECKSUM</code></pre>
+            </div>
+        </div>
+
+        <div class="task">
+            <h4>2. CoAP Message Builder <span class="difficulty hard">Hard</span></h4>
+            <p><strong>CoAP Header (4 bytes):</strong></p>
+            <pre><code>0                   1                   2                   3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|Ver| T |  TKL  |      Code     |          Message ID           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</code></pre>
+
+            <p><strong>Your Tasks:</strong></p>
+            <ul>
+                <li>Build CoAP GET request (retrieve config/status)</li>
+                <li>Build CoAP FETCH request (retrieve specific paths)</li>
+                <li>Build CoAP iPATCH request (modify configuration)</li>
+                <li>Build CoAP POST request (execute RPC/action)</li>
+                <li>Implement option encoding with delta compression</li>
+                <li>Handle CBOR payload encoding</li>
+            </ul>
+
+            <div class="example">
+                <strong>Example GET Request:</strong>
+                <pre><code>// Get all configuration
+Method: GET
+URI-Path: /c?c=c
+Accept: application/yang-data+cbor (141)
+
+// Build message
+const builder = new CoapMessageBuilder()
+    .setCode(COAP_CODE_GET)
+    .addUriPath('c')
+    .addUriPath('c=c')
+    .addAccept(141);
+const message = builder.build();</code></pre>
+            </div>
+        </div>
+
+        <div class="task">
+            <h4>3. WebSerial Integration <span class="difficulty easy">Easy</span></h4>
+            <p><strong>Your Tasks:</strong></p>
+            <ul>
+                <li>Request serial port from user</li>
+                <li>Open connection with 115200 baud rate</li>
+                <li>Set up readable/writable streams</li>
+                <li>Handle asynchronous read/write operations</li>
+                <li>Gracefully handle disconnection</li>
+            </ul>
+        </div>
+
+        <h2>🧪 Test Cases</h2>
+
+        <h3>Test 1: MUP1 Frame Encoding</h3>
+        <table>
+            <tr>
+                <th>Input</th>
+                <th>Expected Output</th>
+            </tr>
+            <tr>
+                <td>Type: 0x43, Data: [0x40, 0x01]</td>
+                <td>>C@\x01<\x02</td>
+            </tr>
+            <tr>
+                <td>Type: 0x54, Data: "Hello"</td>
+                <td>>THello<(checksum)</td>
+            </tr>
+        </table>
+
+        <h3>Test 2: CoAP GET Request</h3>
+        <pre><code>// Expected request structure
+Ver=1, Type=CON(0), TKL=4
+Code=GET(0.01)
+Message ID=random
+Token=4 random bytes
+Options:
+  - URI-Path: "c"
+  - URI-Path: "c=c"
+  - Accept: 141
+No payload</code></pre>
+
+        <h3>Test 3: CoAP FETCH Request</h3>
+        <pre><code>// YAML input
+- "/ietf-interfaces:interfaces/interface[name='1']"
+- "/ietf-interfaces:interfaces/interface[name='2']"
+
+// Expected: CBOR-encoded array in payload
+Content-Format: 141
+Accept: 141</code></pre>
+
+        <h2>💡 Implementation Challenges</h2>
+
+        <div class="task">
+            <h4>Challenge 1: CBOR Encoding <span class="difficulty medium">Medium</span></h4>
+            <p>CORECONF uses CBOR (Concise Binary Object Representation) for data encoding.</p>
+
+            <p><strong>Task:</strong> Convert YAML/JSON input to CBOR using the CBOR.js library</p>
+
+            <pre><code>// Example: Encode iPATCH data
+const patchData = [
+    {
+        "/ietf-interfaces:interfaces/interface[name='L3V1']": {
+            name: "L3V1",
+            "ietf-ip:ipv4": {
+                address: [{
+                    ip: "10.0.0.1",
+                    "prefix-length": 24
+                }]
+            }
+        }
+    }
+];
+
+const cbor = CBOR.encode(patchData);</code></pre>
+        </div>
+
+        <div class="task">
+            <h4>Challenge 2: CoAP Option Encoding <span class="difficulty hard">Hard</span></h4>
+            <p>CoAP options use delta encoding to save space.</p>
+
+            <p><strong>Rules:</strong></p>
+            <ul>
+                <li>Options must be sorted by option number</li>
+                <li>Delta = Current Option Number - Previous Option Number</li>
+                <li>Special handling for delta ≥ 13 (extended formats)</li>
+                <li>Same rules apply to option length</li>
+            </ul>
+
+            <pre><code>// Example: Encode URI-Path options
+Options:
+  11 (URI-Path): "c"    → delta=11, length=1
+  11 (URI-Path): "c=c"  → delta=0,  length=3
+
+Encoding:
+  Byte 0: (11 << 4) | 1 = 0xB1
+  Byte 1: 'c'
+  Byte 2: (0 << 4) | 3 = 0x03
+  Bytes 3-5: 'c', '=', 'c'</code></pre>
+        </div>
+
+        <div class="task">
+            <h4>Challenge 3: Response Parsing <span class="difficulty hard">Hard</span></h4>
+            <p>Parse incoming CoAP responses and extract CBOR payload.</p>
+
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Parse header (4 bytes)</li>
+                <li>Extract token (TKL bytes)</li>
+                <li>Skip options until payload marker (0xFF)</li>
+                <li>Decode CBOR payload</li>
+                <li>Display as YAML/JSON</li>
+            </ol>
+        </div>
+
+        <h2>📚 Resources</h2>
+
+        <h3>Documentation</h3>
+        <ul>
+            <li><a href="https://github.com/microchip-ung/velocitydrivesp-support">VelocityDRIVE-SP Support Repository</a></li>
+            <li><a href="https://datatracker.ietf.org/doc/rfc7252/">RFC7252: The Constrained Application Protocol (CoAP)</a></li>
+            <li><a href="https://datatracker.ietf.org/doc/rfc7951/">RFC7951: JSON Encoding of Data Modeled with YANG</a></li>
+            <li><a href="https://datatracker.ietf.org/doc/rfc9254/">RFC9254: CBOR Encoding of Data Modeled with YANG</a></li>
+            <li><a href="https://wicg.github.io/serial/">Web Serial API Specification</a></li>
+        </ul>
+
+        <h3>JavaScript Libraries</h3>
+        <ul>
+            <li><a href="https://github.com/hildjj/node-cbor">cbor-web</a>: CBOR encoding/decoding</li>
+            <li><a href="https://github.com/nodeca/js-yaml">js-yaml</a>: YAML parsing</li>
+        </ul>
+
+        <h2>✅ Deliverables</h2>
+
+        <ol>
+            <li><strong>Core Modules:</strong>
+                <ul>
+                    <li><code>webserial-core.js</code>: WebSerial API wrapper</li>
+                    <li><code>mup1-protocol.js</code>: MUP1 frame encoding/decoding</li>
+                    <li><code>coap-builder.js</code>: CoAP message construction</li>
+                    <li><code>app.js</code>: Main application logic</li>
+                </ul>
+            </li>
+            <li><strong>UI Features:</strong>
+                <ul>
+                    <li>Connect/disconnect to serial device</li>
+                    <li>Select CORECONF method (GET, FETCH, iPATCH, POST)</li>
+                    <li>Input YAML/JSON request data</li>
+                    <li>Display response in YAML/JSON/Hex</li>
+                    <li>Console log for debugging</li>
+                </ul>
+            </li>
+            <li><strong>Documentation:</strong>
+                <ul>
+                    <li>README with setup instructions</li>
+                    <li>Code comments explaining protocol details</li>
+                    <li>Example requests for common operations</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h2>🎓 Evaluation Criteria</h2>
+
+        <table>
+            <tr>
+                <th>Criterion</th>
+                <th>Weight</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>Protocol Correctness</td>
+                <td>40%</td>
+                <td>MUP1 and CoAP implementations follow specifications</td>
+            </tr>
+            <tr>
+                <td>Code Quality</td>
+                <td>25%</td>
+                <td>Clean, modular, well-documented code</td>
+            </tr>
+            <tr>
+                <td>UI/UX</td>
+                <td>15%</td>
+                <td>Intuitive interface, error handling, user feedback</td>
+            </tr>
+            <tr>
+                <td>Testing</td>
+                <td>10%</td>
+                <td>Unit tests, integration tests, example usage</td>
+            </tr>
+            <tr>
+                <td>Documentation</td>
+                <td>10%</td>
+                <td>Clear README, code comments, usage examples</td>
+            </tr>
+        </table>
+
+        <h2>🏆 Bonus Points</h2>
+
+        <ul>
+            <li>✨ Implement CoAP response parsing and CBOR decoding</li>
+            <li>✨ Add SID (Schema Item iDentifier) support for compact encoding</li>
+            <li>✨ Create automated tests using Jest or similar</li>
+            <li>✨ Implement CoAP observe (0.05) for notifications</li>
+            <li>✨ Add Wireshark-style packet visualization</li>
+            <li>✨ Support both MUP1 and IP-based CoAP</li>
+        </ul>
+
+        <h2>📝 Submission Guidelines</h2>
+
+        <ol>
+            <li>Fork the repository: <a href="https://github.com/hwkim3330/codingtest">https://github.com/hwkim3330/codingtest</a></li>
+            <li>Implement the required features</li>
+            <li>Create a pull request with:
+                <ul>
+                    <li>Working code with all modules</li>
+                    <li>README.md with setup and usage instructions</li>
+                    <li>Example requests and expected responses</li>
+                    <li>Screenshots or GIF of the application in action</li>
+                </ul>
+            </li>
+            <li>Ensure GitHub Pages is enabled for live demo</li>
+        </ol>
+
+        <div class="note">
+            <strong>⏱️ Estimated Time:</strong> 8-12 hours for core functionality<br>
+            <strong>💪 Difficulty Level:</strong> Intermediate to Advanced<br>
+            <strong>🛠️ Skills Required:</strong> JavaScript (ES6+), Binary protocols, Asynchronous programming, Web APIs
+        </div>
+
+        <hr style="margin: 40px 0;">
+
+        <p style="text-align: center;">
+            <a href="../index.html">← Back to Main Application</a> |
+            <a href="https://github.com/hwkim3330/codingtest">GitHub Repository</a>
+        </p>
+    </div>
+</body>
+</html>

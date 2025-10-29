@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VelocityDRIVE-SP WebSerial Client</title>
+    <meta name="description" content="Browser-based client for Microchip VelocityDRIVE-SP using WebSerial API">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 VelocityDRIVE-SP WebSerial Client</h1>
+            <p class="subtitle">Browser-based CORECONF/CoAP client using MUP1 protocol</p>
+        </header>
+
+        <main>
+            <!-- Connection Section -->
+            <section class="card">
+                <h2>📡 Serial Connection</h2>
+                <div class="connection-controls">
+                    <button id="connectBtn" class="btn btn-primary">Connect to Device</button>
+                    <button id="disconnectBtn" class="btn btn-secondary" disabled>Disconnect</button>
+                    <div class="status" id="connectionStatus">
+                        <span class="status-indicator disconnected"></span>
+                        <span class="status-text">Disconnected</span>
+                    </div>
+                </div>
+                <div class="device-info" id="deviceInfo" style="display: none;">
+                    <h3>Device Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="label">Port:</span>
+                            <span class="value" id="portName">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Baud Rate:</span>
+                            <span class="value" id="baudRate">115200</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">YANG Checksum:</span>
+                            <span class="value" id="yangChecksum">-</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Command Section -->
+            <section class="card">
+                <h2>⚙️ CORECONF Commands</h2>
+
+                <div class="command-selector">
+                    <label for="methodSelect">Method:</label>
+                    <select id="methodSelect" class="select-input">
+                        <option value="get">GET - Get configuration/status</option>
+                        <option value="fetch">FETCH - Fetch specific paths</option>
+                        <option value="ipatch">iPATCH - Incremental patch</option>
+                        <option value="post">POST - RPC/Action</option>
+                        <option value="put">PUT - Replace configuration</option>
+                        <option value="delete">DELETE - Delete configuration</option>
+                    </select>
+                </div>
+
+                <div class="command-examples">
+                    <h3>Quick Examples</h3>
+                    <div class="examples-grid">
+                        <button class="example-btn" data-example="get-all">Get All Config</button>
+                        <button class="example-btn" data-example="get-status">Get Status</button>
+                        <button class="example-btn" data-example="fetch-ports">Fetch Ports 1-2</button>
+                        <button class="example-btn" data-example="set-ip">Set IP Address</button>
+                        <button class="example-btn" data-example="save-config">Save Config</button>
+                        <button class="example-btn" data-example="no-sec">Disable DTLS</button>
+                    </div>
+                </div>
+
+                <div class="command-input">
+                    <label for="requestInput">Request (YAML/JSON):</label>
+                    <textarea id="requestInput" class="text-input" rows="10" placeholder='# Example: Get interface config
+- "/ietf-interfaces:interfaces/interface[name='\''1'\'']"
+- "/ietf-interfaces:interfaces/interface[name='\''2'\'']"'></textarea>
+                </div>
+
+                <div class="command-actions">
+                    <button id="sendBtn" class="btn btn-success" disabled>Send Command</button>
+                    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                </div>
+            </section>
+
+            <!-- Response Section -->
+            <section class="card">
+                <h2>📋 Response</h2>
+                <div class="response-controls">
+                    <select id="responseFormat" class="select-input">
+                        <option value="yaml">YAML</option>
+                        <option value="json">JSON</option>
+                        <option value="cbor-hex">CBOR (Hex)</option>
+                    </select>
+                    <button id="copyResponseBtn" class="btn btn-secondary">Copy</button>
+                    <button id="clearResponseBtn" class="btn btn-secondary">Clear</button>
+                </div>
+                <div class="response-output">
+                    <pre id="responseOutput" class="code-output">Waiting for response...</pre>
+                </div>
+            </section>
+
+            <!-- Console Section -->
+            <section class="card">
+                <h2>🖥️ Console Log</h2>
+                <div class="console-controls">
+                    <button id="clearConsoleBtn" class="btn btn-secondary">Clear</button>
+                    <label>
+                        <input type="checkbox" id="autoScrollConsole" checked>
+                        Auto-scroll
+                    </label>
+                </div>
+                <div class="console-output">
+                    <div id="consoleLog" class="code-output"></div>
+                </div>
+            </section>
+
+            <!-- Documentation Section -->
+            <section class="card">
+                <h2>📖 Documentation</h2>
+                <div class="docs-content">
+                    <h3>About MUP1 Protocol</h3>
+                    <p>MUP1 (Microchip UART Protocol #1) is a point-to-point protocol that carries CoAP frames over UART. It enables CORECONF requests without IP configuration.</p>
+
+                    <h3>Frame Format</h3>
+                    <pre class="code-output">Frame: >TYPE[DATA]&lt;CHECKSUM
+- START: '>' (0x3E)
+- TYPE: 1 byte command type
+- DATA: Variable length payload
+- END: '<' (0x3C)
+- CHECKSUM: XOR of all bytes</pre>
+
+                    <h3>Supported Methods</h3>
+                    <ul>
+                        <li><strong>GET</strong>: Retrieve configuration or status</li>
+                        <li><strong>FETCH</strong>: Retrieve specific YANG paths</li>
+                        <li><strong>iPATCH</strong>: Incrementally modify configuration</li>
+                        <li><strong>POST</strong>: Execute RPC or action</li>
+                        <li><strong>PUT</strong>: Replace entire configuration</li>
+                        <li><strong>DELETE</strong>: Remove configuration</li>
+                    </ul>
+
+                    <h3>Query Parameters</h3>
+                    <ul>
+                        <li><strong>c=c</strong>: Config datastore, Config data</li>
+                        <li><strong>c=n</strong>: Config datastore, Non-config data</li>
+                        <li><strong>c=a</strong>: Config datastore, All data</li>
+                        <li><strong>d=a</strong>: Dynamic datastore, All data</li>
+                        <li><strong>d=t</strong>: Dynamic datastore, System state</li>
+                    </ul>
+
+                    <h3>Links</h3>
+                    <ul>
+                        <li><a href="https://github.com/microchip-ung/velocitydrivesp-support" target="_blank">VelocityDRIVE-SP Support Repository</a></li>
+                        <li><a href="https://datatracker.ietf.org/doc/rfc7252/" target="_blank">RFC7252: CoAP</a></li>
+                        <li><a href="https://datatracker.ietf.org/doc/rfc7951/" target="_blank">RFC7951: JSON Encoding of YANG</a></li>
+                        <li><a href="https://datatracker.ietf.org/doc/rfc9254/" target="_blank">RFC9254: CBOR Encoding of YANG</a></li>
+                        <li><a href="docs/CODING_TEST.html" target="_blank">Coding Test Problem</a></li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>VelocityDRIVE-SP WebSerial Client | Built with WebSerial API</p>
+            <p>
+                <a href="https://github.com/hwkim3330/codingtest" target="_blank">GitHub Repository</a> |
+                <a href="docs/CODING_TEST.html" target="_blank">Coding Test</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Load CBOR library from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/cbor-web@9.0.1/dist/cbor.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+
+    <!-- Load our modules -->
+    <script type="module" src="js/webserial-core.js"></script>
+    <script type="module" src="js/mup1-protocol.js"></script>
+    <script type="module" src="js/coap-builder.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
