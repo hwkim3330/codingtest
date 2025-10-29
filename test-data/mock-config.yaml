@@ -1,0 +1,175 @@
+# Mock VelocityDRIVE-SP Configuration
+# Based on ietf-interfaces, ietf-system, and mchp-velocitysp-system modules
+# This is example data to test the Config Editor without a real device
+
+ietf-interfaces:interfaces:
+  interface:
+  - name: "1"
+    description: "Port 1 - Front Panel"
+    type: "ethernetCsmacd"
+    enabled: true
+    ietf-ip:ipv4:
+      enabled: true
+      forwarding: false
+      mtu: 1500
+  - name: "2"
+    description: "Port 2 - Front Panel"
+    type: "ethernetCsmacd"
+    enabled: true
+    ietf-ip:ipv4:
+      enabled: true
+      forwarding: false
+      mtu: 1500
+  - name: "3"
+    description: "Port 3 - Front Panel"
+    type: "ethernetCsmacd"
+    enabled: false
+    ietf-ip:ipv4:
+      enabled: false
+  - name: "4"
+    description: "Port 4 - Front Panel"
+    type: "ethernetCsmacd"
+    enabled: false
+  - name: "L3V1"
+    description: "Layer 3 VLAN Interface"
+    type: "l3ipvlan"
+    enabled: true
+    ietf-ip:ipv4:
+      enabled: true
+      forwarding: true
+      mtu: 1500
+      address:
+      - ip: "192.168.1.1"
+        prefix-length: 24
+      - ip: "10.0.0.1"
+        prefix-length: 8
+
+ietf-system:system:
+  hostname: "velocitysp-switch"
+  contact: "admin@example.com"
+  location: "Data Center - Rack 42"
+  clock:
+    timezone-name: "Europe/Copenhagen"
+  ntp:
+    enabled: true
+    server:
+    - name: "0.pool.ntp.org"
+      udp:
+        address: "0.pool.ntp.org"
+        port: 123
+      association-type: "server"
+      iburst: true
+      prefer: true
+    - name: "1.pool.ntp.org"
+      udp:
+        address: "1.pool.ntp.org"
+        port: 123
+      association-type: "server"
+      iburst: true
+
+ietf-system:system-state:
+  platform:
+    os-name: "VelocityDRIVE-SP"
+    os-release: "2024.12"
+    os-version: "v1.2.3-beta"
+    machine: "LAN9662"
+  clock:
+    current-datetime: "2025-01-29T15:30:00Z"
+    boot-datetime: "2025-01-20T08:00:00Z"
+
+mchp-velocitysp-system:coap-server:
+  config:
+    security-mode: "psk"
+    port: 5683
+    max-payload-size: 1024
+  state:
+    active-connections: 1
+    total-requests: 42
+    uptime-seconds: 864000
+
+mchp-velocitysp-system:switch:
+  port-config:
+  - port-id: 1
+    admin-state: "enabled"
+    speed: "1000"
+    duplex: "full"
+    auto-negotiation: true
+    flow-control: false
+  - port-id: 2
+    admin-state: "enabled"
+    speed: "1000"
+    duplex: "full"
+    auto-negotiation: true
+    flow-control: false
+  - port-id: 3
+    admin-state: "disabled"
+    speed: "auto"
+    duplex: "auto"
+    auto-negotiation: true
+  - port-id: 4
+    admin-state: "disabled"
+    speed: "auto"
+    duplex: "auto"
+    auto-negotiation: true
+  vlan-config:
+    vlan:
+    - vlan-id: 1
+      name: "default"
+      ports: ["1", "2", "3", "4"]
+    - vlan-id: 10
+      name: "management"
+      ports: ["1"]
+    - vlan-id: 20
+      name: "data"
+      ports: ["2", "3"]
+
+mchp-velocitysp-system:tsn:
+  qos:
+    priority-map:
+    - pcp: 0
+      priority: 0
+    - pcp: 1
+      priority: 1
+    - pcp: 2
+      priority: 2
+    - pcp: 3
+      priority: 3
+    - pcp: 4
+      priority: 4
+    - pcp: 5
+      priority: 5
+    - pcp: 6
+      priority: 6
+    - pcp: 7
+      priority: 7
+  cbs:
+    enabled: false
+    port-config:
+    - port-id: 1
+      tc: 6
+      idle-slope: 3500
+      send-slope: -6500
+    - port-id: 1
+      tc: 2
+      idle-slope: 1500
+      send-slope: -8500
+  tas:
+    enabled: false
+    cycle-time: 200000
+    gate-control-list:
+    - gate-state: "10000000"
+      time-interval: 50000
+    - gate-state: "01000000"
+      time-interval: 30000
+    - gate-state: "00100000"
+      time-interval: 20000
+    - gate-state: "00010000"
+      time-interval: 20000
+    - gate-state: "00001000"
+      time-interval: 20000
+    - gate-state: "00000100"
+      time-interval: 20000
+    - gate-state: "00000010"
+      time-interval: 20000
+    - gate-state: "00000001"
+      time-interval: 20000

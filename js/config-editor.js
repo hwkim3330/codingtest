@@ -8,6 +8,7 @@ import { MUP1Protocol } from './mup1-protocol.js';
 import { createGetRequest, createIPatchRequest, createPostRequest } from './coap-builder.js';
 import { CoapParser } from './coap-parser.js';
 import { CborHelper } from './cbor-helper.js';
+import { TestMode } from './test-mode.js';
 
 class ConfigEditor {
     constructor() {
@@ -15,6 +16,9 @@ class ConfigEditor {
         this.serial = new WebSerialConnection();
         this.mup1 = new MUP1Protocol();
         this.connected = false;
+
+        // Test mode
+        this.testMode = new TestMode(false);
 
         // Data storage
         this.configData = null;         // Full config from GET
@@ -32,11 +36,13 @@ class ConfigEditor {
         this.consoleVisible = true;
 
         this.log('Config Editor initialized', 'info');
+        this.log('💡 Click "Test Mode" to try without hardware', 'info');
     }
 
     initUIElements() {
         // Header
         this.connectionBadge = document.getElementById('connectionBadge');
+        this.testModeBtn = document.getElementById('testModeBtn');
         this.connectBtn = document.getElementById('connectBtn');
         this.disconnectBtn = document.getElementById('disconnectBtn');
 
@@ -78,6 +84,7 @@ class ConfigEditor {
 
     setupEventListeners() {
         // Connection
+        this.testModeBtn.addEventListener('click', () => this.enableTestMode());
         this.connectBtn.addEventListener('click', () => this.connect());
         this.disconnectBtn.addEventListener('click', () => this.disconnect());
 
@@ -186,9 +193,25 @@ class ConfigEditor {
         this.updateApplyButton();
     }
 
+    // Test Mode
+    async enableTestMode() {
+        this.testMode.setEnabled(true);
+        this.connected = true;
+        this.updateConnectionState(true);
+        this.connectionBadge.querySelector('.badge-text').textContent = 'Test Mode';
+        this.testModeBtn.disabled = true;
+        this.connectBtn.disabled = true;
+
+        this.log('🧪 Test Mode enabled', 'success');
+        this.log('Using mock configuration data', 'info');
+
+        // Auto-load test config
+        await this.refreshConfig();
+    }
+
     // Configuration loading
     async refreshConfig() {
-        if (!this.connected) {
+        if (!this.connected && !this.testMode.isEnabled()) {
             this.log('Not connected to device', 'error');
             return;
         }
@@ -197,14 +220,24 @@ class ConfigEditor {
             this.log('📥 Loading configuration...', 'info');
             this.statusText.textContent = 'Loading configuration...';
 
-            // Send GET request with query c=c (config data)
-            const coapMessage = createGetRequest('c', 'c=c');
-            const mup1Frame = MUP1Protocol.encodeCoapFrame(coapMessage);
+            if (this.testMode.isEnabled()) {
+                // Test mode: Load mock data
+                const mockData = await this.testMode.simulateGetConfig();
+                this.configData = mockData;
+                this.buildYangTree(mockData);
+                this.statusText.textContent = 'Configuration loaded (test mode)';
+                this.dataStoreInfo.textContent = `Datastore: config (${Object.keys(mockData).length} modules)`;
+                this.log(`✓ Test configuration loaded`, 'success');
+            } else {
+                // Real mode: Send CoAP GET request
+                const coapMessage = createGetRequest('c', 'c=c');
+                const mup1Frame = MUP1Protocol.encodeCoapFrame(coapMessage);
 
-            await this.serial.write(mup1Frame);
-            this.log('GET request sent (c=c)', 'info');
+                await this.serial.write(mup1Frame);
+                this.log('GET request sent (c=c)', 'info');
 
-            // Response will be handled by handleCoapResponse()
+                // Response will be handled by handleCoapResponse()
+            }
         } catch (error) {
             this.log(`Failed to load config: ${error.message}`, 'error');
             this.statusText.textContent = 'Failed to load configuration';
@@ -577,29 +610,40 @@ class ConfigEditor {
         try {
             this.log(`Applying ${this.pendingChanges.size} changes...`, 'info');
 
-            // Build iPATCH request
-            const patchData = [];
-            for (const [pathKey, change] of this.pendingChanges) {
-                // Convert path to YANG path format
-                const yangPath = '/' + change.path.join('/');
-                patchData.push({ [yangPath]: change.newValue });
+            if (this.testMode.isEnabled()) {
+                // Test mode: Apply to mock data
+                const result = await this.testMode.simulateIPatch(this.pendingChanges);
+                this.log(`✓ ${result.message}`, 'success');
+
+                // Clear changes and refresh
+                setTimeout(() => {
+                    this.resetChanges();
+                    this.refreshConfig();
+                }, 500);
+            } else {
+                // Real mode: Build iPATCH request
+                const patchData = [];
+                for (const [pathKey, change] of this.pendingChanges) {
+                    // Convert path to YANG path format
+                    const yangPath = '/' + change.path.join('/');
+                    patchData.push({ [yangPath]: change.newValue });
+                }
+
+                // Encode and send
+                const cbor = CborHelper.encodeIPatchRequest(patchData);
+                const coapMessage = createIPatchRequest('c', cbor);
+                const mup1Frame = MUP1Protocol.encodeCoapFrame(coapMessage);
+
+                await this.serial.write(mup1Frame);
+
+                this.log('✓ iPATCH request sent', 'success');
+
+                // Clear changes after successful send
+                setTimeout(() => {
+                    this.resetChanges();
+                    this.refreshConfig();
+                }, 500);
             }
-
-            // Encode and send
-            const cbor = CborHelper.encodeIPatchRequest(patchData);
-            const coapMessage = createIPatchRequest('c', cbor);
-            const mup1Frame = MUP1Protocol.encodeCoapFrame(coapMessage);
-
-            await this.serial.write(mup1Frame);
-
-            this.log('✓ iPATCH request sent', 'success');
-
-            // Clear changes after successful send
-            setTimeout(() => {
-                this.resetChanges();
-                this.refreshConfig();
-            }, 500);
-
         } catch (error) {
             this.log(`Failed to apply changes: ${error.message}`, 'error');
         }
@@ -613,14 +657,21 @@ class ConfigEditor {
         try {
             this.log('💾 Saving configuration to flash...', 'info');
 
-            const postData = [{ "/mchp-velocitysp-system:save-config": null }];
-            const cbor = CborHelper.encodeRequest(postData);
-            const coapMessage = createPostRequest('c', cbor);
-            const mup1Frame = MUP1Protocol.encodeCoapFrame(coapMessage);
+            if (this.testMode.isEnabled()) {
+                // Test mode: Simulate save
+                const result = await this.testMode.simulateSaveConfig();
+                this.log(`✓ ${result.message}`, 'success');
+            } else {
+                // Real mode: Send POST request
+                const postData = [{ "/mchp-velocitysp-system:save-config": null }];
+                const cbor = CborHelper.encodeRequest(postData);
+                const coapMessage = createPostRequest('c', cbor);
+                const mup1Frame = MUP1Protocol.encodeCoapFrame(coapMessage);
 
-            await this.serial.write(mup1Frame);
+                await this.serial.write(mup1Frame);
 
-            this.log('✓ Save config request sent', 'success');
+                this.log('✓ Save config request sent', 'success');
+            }
         } catch (error) {
             this.log(`Failed to save config: ${error.message}`, 'error');
         }
