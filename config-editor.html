@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VelocityDRIVE-SP Config Editor</title>
+    <meta name="description" content="Registry-style configuration editor for VelocityDRIVE-SP">
+    <link rel="stylesheet" href="css/config-editor.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <h1>⚙️ VelocityDRIVE-SP Config Editor</h1>
+                <div class="connection-badge" id="connectionBadge">
+                    <span class="badge-indicator"></span>
+                    <span class="badge-text">Not Connected</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="connectBtn" class="btn btn-primary">Connect</button>
+                <button id="disconnectBtn" class="btn btn-secondary" disabled>Disconnect</button>
+            </div>
+        </header>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <button id="refreshBtn" class="toolbar-btn" disabled title="Reload configuration">
+                    <span class="icon">🔄</span> Refresh
+                </button>
+                <button id="applyBtn" class="toolbar-btn toolbar-btn-success" disabled title="Apply pending changes">
+                    <span class="icon">✓</span> Apply Changes <span class="change-count" id="changeCount">0</span>
+                </button>
+                <button id="resetBtn" class="toolbar-btn toolbar-btn-danger" disabled title="Discard pending changes">
+                    <span class="icon">✗</span> Discard
+                </button>
+            </div>
+            <div class="toolbar-section">
+                <button id="saveConfigBtn" class="toolbar-btn" disabled title="Save config to flash">
+                    <span class="icon">💾</span> Save to Flash
+                </button>
+                <button id="exportBtn" class="toolbar-btn" disabled title="Export configuration">
+                    <span class="icon">📤</span> Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar: YANG Tree Browser -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Configuration Tree</h2>
+                    <input type="text" id="treeSearch" class="tree-search" placeholder="Search...">
+                </div>
+                <div class="tree-container" id="yangTree">
+                    <div class="tree-loading">
+                        <div class="spinner"></div>
+                        <p>Connect to device to load configuration</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Panel: Value Editor -->
+            <main class="editor-panel">
+                <div class="editor-header">
+                    <div class="breadcrumb" id="breadcrumb">
+                        <span class="breadcrumb-item">Select a node</span>
+                    </div>
+                    <div class="editor-actions">
+                        <select id="viewMode" class="view-mode-select">
+                            <option value="form">Form View</option>
+                            <option value="yaml">YAML View</option>
+                            <option value="json">JSON View</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="editor-content" id="editorContent">
+                    <div class="editor-empty">
+                        <div class="empty-icon">📋</div>
+                        <h3>No Node Selected</h3>
+                        <p>Select a node from the tree to view and edit its configuration</p>
+                    </div>
+                </div>
+
+                <!-- Changes Panel -->
+                <div class="changes-panel" id="changesPanel" style="display: none;">
+                    <div class="changes-header">
+                        <h3>Pending Changes</h3>
+                        <button class="changes-close" id="changesPanelClose">×</button>
+                    </div>
+                    <div class="changes-list" id="changesList">
+                        <!-- Changes will be listed here -->
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span id="statusText">Ready</span>
+            </div>
+            <div class="status-right">
+                <span id="dataStoreInfo">Datastore: Not loaded</span>
+                <span id="yangChecksum">YANG: -</span>
+            </div>
+        </div>
+
+        <!-- Console Drawer (toggleable) -->
+        <div class="console-drawer" id="consoleDrawer">
+            <div class="console-header">
+                <h3>Console</h3>
+                <div class="console-controls">
+                    <button id="clearConsoleBtn" class="console-btn">Clear</button>
+                    <label>
+                        <input type="checkbox" id="autoScrollConsole" checked>
+                        Auto-scroll
+                    </label>
+                    <button id="toggleConsoleBtn" class="console-btn">▼ Minimize</button>
+                </div>
+            </div>
+            <div class="console-log" id="consoleLog"></div>
+        </div>
+
+        <!-- Toggle Console Button -->
+        <button class="console-toggle" id="consoleToggle" title="Show/Hide Console">
+            <span>▲ Console</span>
+        </button>
+    </div>
+
+    <!-- Load libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/cbor-web@9.0.1/dist/cbor.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+
+    <!-- Load modules -->
+    <script type="module" src="js/webserial-core.js"></script>
+    <script type="module" src="js/mup1-protocol.js"></script>
+    <script type="module" src="js/coap-builder.js"></script>
+    <script type="module" src="js/coap-parser.js"></script>
+    <script type="module" src="js/cbor-helper.js"></script>
+    <script type="module" src="js/config-editor.js"></script>
+</body>
+</html>

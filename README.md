@@ -5,6 +5,11 @@
 [![WebSerial](https://img.shields.io/badge/WebSerial-API-green.svg)](https://wicg.github.io/serial/)
 [![CoAP](https://img.shields.io/badge/Protocol-CoAP-orange.svg)](https://datatracker.ietf.org/doc/rfc7252/)
 
+## 🎯 Two Interfaces Available
+
+1. **Simple Client** (`index.html`) - Quick CORECONF requests with examples
+2. **Config Editor** (`config-editor.html`) - **Registry-style full configuration editor** ⭐
+
 ## 🚀 Overview
 
 Browser-based client for Microchip's VelocityDRIVE-SP platform. Communicates over serial port using:
@@ -23,12 +28,33 @@ Based on: https://github.com/microchip-ung/velocitydrivesp-support
 - **Browser**: Chrome/Edge/Opera with WebSerial support
 - **Device**: VelocityDRIVE-SP switch connected via USB serial
 
-### Usage
+### Simple Client Usage
 
 1. **Open**: https://hwkim3330.github.io/codingtest/
 2. **Connect**: Click "Connect to Device" → Select serial port (e.g., `/dev/ttyACM0`)
 3. **Send Command**: Click example button or write YAML, then "Send Command"
 4. **View Response**: See output in YAML/JSON/Hex format
+
+### Config Editor Usage (Registry Style)
+
+1. **Open**: https://hwkim3330.github.io/codingtest/config-editor.html
+2. **Connect**: Click "Connect" → Select serial port
+3. **Auto-Load**: Configuration is automatically loaded with GET
+4. **Browse**: Navigate YANG tree in left sidebar (ietf-interfaces, ietf-system, etc.)
+5. **Edit**: Click nodes to view/edit values in Form/YAML/JSON view
+6. **Apply**: Pending changes tracked → Click "Apply Changes" to send iPATCH
+7. **Save**: Click "Save to Flash" to persist configuration
+
+## ✨ Config Editor Features
+
+- **📁 YANG Tree Browser**: Hierarchical view of all configuration modules
+- **✏️ Multi-View Editor**: Form view, YAML view, or JSON view
+- **📊 Change Tracking**: Visual diff of pending modifications
+- **🔄 Auto-Refresh**: GET entire config with one click
+- **💾 Save to Flash**: POST save-config action
+- **📤 Export**: Download configuration as YAML
+- **🖥️ Console**: Real-time protocol logging
+- **🎨 Apple Design**: Clean, modern registry-editor style UI
 
 ## 📖 Protocol Details
 
